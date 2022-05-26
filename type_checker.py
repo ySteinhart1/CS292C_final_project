@@ -89,7 +89,12 @@ class visitor(ast.NodeVisitor):
         expr1 = symbolic_vars[node.left]
         expr2 = symbolic_vars[node.right]
         symbolic_vars[node] = Int(str(node))
-        solver.add(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
+        if type(node.op) == ast.Mult:
+            case1 = And(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
+            case2 = And(expr1 == 1, expr2 == 0, symbolic_vars[node] == 1)
+            solver.add(Or(case1, case2))
+        else:
+            solver.add(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
 
         try:
             param1 = node.left.id

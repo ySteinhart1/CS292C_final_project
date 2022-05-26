@@ -34,3 +34,6 @@ def simple_attr(x, y):
         y = 2
     return y
 
+def test_mult(x):
+    a = x[0]
+    return x * 2
