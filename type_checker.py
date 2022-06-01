@@ -8,7 +8,6 @@ from typing import *
 #bool - 2
 
 param_constraints = dict()
-out_of_consideration = set()
 symbolic_vars = dict()
 solver = Solver()
 
@@ -16,13 +15,11 @@ solver = Solver()
 class MyZ3Solver():
     def solve(self, func):
         global param_constraints
-        global out_of_consideration
 
         sig = inspect.signature(func)
         param_names = sig.parameters.keys()
         
         param_constraints = dict()
-        out_of_consideration = set() 
 
         for i in param_names:
             param_constraints[i] = []
@@ -35,6 +32,7 @@ class MyZ3Solver():
         global solver
 
         visitor().visit(func_ast)
+        # print(param_constraints)
         for i in param_constraints:
             for c in param_constraints[i]:
                 cons = []
@@ -81,7 +79,7 @@ class visitor(ast.NodeVisitor):
         super().generic_visit(node)
         symbolic_vars[node] = Int(str(node))
         param = node.value.id
-        if param in param_constraints and param not in out_of_consideration:
+        if param in param_constraints:
             param_constraints[param].append(node.attr)
 
     def visit_BinOp(self, node: ast.BinOp) -> Any:
@@ -99,7 +97,7 @@ class visitor(ast.NodeVisitor):
         try:
             param1 = node.left.id
            
-            if param1 in param_constraints and param1 not in out_of_consideration:
+            if param1 in param_constraints:
                 param_constraints[param1].append(binop_tostr(node.op))
  
         except:
@@ -107,7 +105,7 @@ class visitor(ast.NodeVisitor):
 
         try:
              param2 = node.right.id
-             if param2 in param_constraints and param2 not in out_of_consideration:
+             if param2 in param_constraints:
                 param_constraints[param2].append(binop_tostr(node.op))
         except:
             pass
@@ -120,14 +118,14 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
         try:
             param1 = node.left.id
-            if param1 in param_constraints and param1 not in out_of_consideration:
+            if param1 in param_constraints:
                 param_constraints[param1].append(boolop_tostr(node.op))
         except:
             pass
         try:
             param2 = node.right.id
 
-            if param2 in param_constraints and param2 not in out_of_consideration:
+            if param2 in param_constraints:
                 param_constraints[param2].append(boolop_tostr(node.op))
         except:
             pass
@@ -141,13 +139,13 @@ class visitor(ast.NodeVisitor):
 
         try:
             param = node.left.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append(compare_tostr(node.ops[0]))
         except:
             pass
         try:
             param = node.comparators[0].id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append(compare_tostr(node.ops[0]))
         except:
             pass
@@ -156,9 +154,10 @@ class visitor(ast.NodeVisitor):
         super().generic_visit(node)
         symbolic_vars[node] = Int(str(node))
         solver.add(symbolic_vars[node.iter] == 1)
+        solver.add(symbolic_vars[node] == 1)
         try:
             param = node.iter.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append('__iter__')
         except:
             pass
@@ -169,7 +168,7 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node.iter] == 1)
         try:
             param = node.iter.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append('__iter__')
         except:
             pass
@@ -179,15 +178,16 @@ class visitor(ast.NodeVisitor):
         super().generic_visit(node)
         symbolic_vars[node] = Int(str(node))
         solver.add(symbolic_vars[node.lower] == 0, symbolic_vars[node.upper] == 0)
+        solver.add(symbolic_vars[node] == 1)
         try:
             param1 = node.lower.id
-            if param1 in param_constraints and param1 not in out_of_consideration:
+            if param1 in param_constraints:
                 param_constraints[param1].append("__int__")
         except:
             pass
         try:
             param2 = node.upper.id
-            if param2 in param_constraints and param2 not in out_of_consideration:
+            if param2 in param_constraints:
                 param_constraints[param2].append("__int__")
         except:
             pass
@@ -196,9 +196,10 @@ class visitor(ast.NodeVisitor):
         super().generic_visit(node)
         symbolic_vars[node] = Int(str(node))
         solver.add(symbolic_vars[node.value] == 1)
+        solver.add(symbolic_vars[node] == 1)
         try:
             param = node.value.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append("index")
         except:
             pass
@@ -209,7 +210,7 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node] == symbolic_vars[node.operand])
         try:
             param = node.operand.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append(unop_tostr(node.op))
         except:
             pass
@@ -221,13 +222,13 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node] == symbolic_vars[node.target])
         try:
             param = node.target.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append(binop_tostr(node.op))
         except:
             pass
         try:
             param = node.value.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints :
                 param_constraints[param].append(binop_tostr(node.op))
         except:
             pass
@@ -239,8 +240,6 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node] == symbolic_vars[node.targets[0]])
         try:
             param = node.targets[0].id
-            if param in param_constraints and param not in out_of_consideration:
-                out_of_consideration.add(param)
             if param not in param_constraints:
                 param_constraints[param] = list()
         except:
@@ -252,7 +251,7 @@ class visitor(ast.NodeVisitor):
         solver.add(symbolic_vars[node.iter] == 1)
         try:
             param = node.iter.id
-            if param in param_constraints and param not in out_of_consideration:
+            if param in param_constraints:
                 param_constraints[param].append("__iter__")
         except:
             pass
@@ -345,7 +344,7 @@ def unop_tostr(node):
     ops = {
         ast.UAdd: "__uadd__",
         ast.USub: "__usub__",
-        ast.Not: "__not__",
+        ast.Not: "__neg__",
         ast.Invert: "__invert__"
     }
     return ops[type(node)]

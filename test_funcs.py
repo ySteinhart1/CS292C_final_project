@@ -1,8 +1,3 @@
-
-
-from re import A
-
-
 def simple_test(x):
     return x[0]
 
@@ -27,7 +22,7 @@ def simple_bool(x, y, z):
         y += a
     else:
         z += a
-    return x
+    return not x
 
 def simple_attr(x, y):
     if x.isdigit():
@@ -37,3 +32,16 @@ def simple_attr(x, y):
 def test_mult(x):
     a = x[0]
     return x * 2
+
+def simple_return(x):
+    return x
+
+def test_subtract(x, y):
+    return x - y
+
+def test_complex(a, b, c):
+    x = int(a)
+    if (a.isupper()):
+        b += x
+        c += 1
+    return b + c
