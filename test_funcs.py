@@ -45,3 +45,9 @@ def test_complex(a, b, c):
         b += x
         c += 1
     return b + c
+
+def test_compare(a, b):
+    return a < b
+
+def test_bool(a, b):
+    return a and b

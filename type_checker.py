@@ -112,18 +112,19 @@ class visitor(ast.NodeVisitor):
 
     def visit_BoolOp(self, node: ast.BoolOp) -> Any:
         super().generic_visit(node)
-        expr1 = symbolic_vars[node.left]
-        expr2 = symbolic_vars[node.right]
+        expr1 = symbolic_vars[node.values[0]]
+        expr2 = symbolic_vars[node.values[1]]
         symbolic_vars[node] = Int(str(node))
-        solver.add(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
+        solver.add(expr1 == 2, expr2 == 2, symbolic_vars[node] == 2)
+        
         try:
-            param1 = node.left.id
+            param1 = node.values[0].id
             if param1 in param_constraints:
                 param_constraints[param1].append(boolop_tostr(node.op))
         except:
             pass
         try:
-            param2 = node.right.id
+            param2 = node.values[1].id
 
             if param2 in param_constraints:
                 param_constraints[param2].append(boolop_tostr(node.op))
@@ -135,7 +136,7 @@ class visitor(ast.NodeVisitor):
         expr1 = symbolic_vars[node.left]
         expr2 = symbolic_vars[node.comparators[0]]
         symbolic_vars[node] = Int(str(node))
-        solver.add(symbolic_vars[node] == expr1, symbolic_vars[node] == expr2)
+        solver.add(expr2 == expr1, symbolic_vars[node] == 2)
 
         try:
             param = node.left.id
